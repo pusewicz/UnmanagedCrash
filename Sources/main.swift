@@ -1,40 +1,28 @@
-import CPicoECS
-
 protocol System: AnyObject {
   func update()
 }
 
-class Position: System {
-  var x: Int = 0
-  var y: Int = 0
+typealias SystemCallback = @convention(c) (
+  UnsafeMutableRawPointer?
+) -> Int32
 
-  func update() {
-    print("Position(x: \(x), y: \(y))")
-  }
+@discardableResult
+func ecsRegisterSystem(
+  _ callback: @escaping SystemCallback,
+  _ udata: UnsafeMutableRawPointer?
+) -> Int32 {
+  return 0
 }
 
-/// Register a system with the ECS using a template function.
-func registerSystem<T: System>(ecs: OpaquePointer, system: T) {
-  let systemPointer = Unmanaged.passUnretained(system).toOpaque()
+func registerSystem<T: System>(ecs: OpaquePointer, system: T, type: T.Type = T.self) {
+  let systemPointer = Unmanaged<T>.passUnretained(system).toOpaque()
 
-  ecs_register_system(
-    ecs,
-    { (ecs, entities, count, deltaTime, userData) in
-      print("System update called with count: \(count), deltaTime: \(deltaTime)")
-
+  ecsRegisterSystem(
+    { (userData) in
       let system = Unmanaged<T>.fromOpaque(userData!).takeUnretainedValue()  // FIX: Crash!
       system.update()
       return 0
     },
-    nil,
-    nil,
     systemPointer
   )
 }
-
-guard let ecs = ecs_new(1024, nil) else {
-  fatalError("Failed to create ECS instance")
-}
-
-registerSystem(ecs: ecs, system: Position())
-ecs_update_systems(ecs, 0.016)  // Simulate a frame update

@@ -1,4 +1,0 @@
-module CPicoECS {
-  header "pico_ecs.h"
-  export *
-}

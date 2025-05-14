@@ -7,16 +7,6 @@ let package = Package(
   targets: [
     .executableTarget(
       name: "UnmanagedCrash",
-      dependencies: [
-        "CPicoECS"
-      ],
-      path: "Sources",
-    ),
-    .target(
-      name: "CPicoECS",
-      path: "ThirdParty",
-      sources: ["pico_ecs.c"],
-      publicHeadersPath: "include"
-    ),
+    )
   ]
 )
